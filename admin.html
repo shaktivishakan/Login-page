@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Dashboard</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>User ID</th>
+                    <th>Issue Type</th>
+                    <th>AC ID</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $db = new mysqli('localhost', 'username', 'password', 'database');
+                if ($db->connect_error) {
+                    die("Connection failed: " . $db->connect_error);
+                }
+
+                $stmt = $db->prepare("SELECT * FROM issues WHERE status != 'Completed'");
+                $stmt->execute();
+                $result = $stmt->get_result();
+
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . $row['ticket_id'] . "</td>";
+                    echo "<td>" . $row['user_id'] . "</td>";
+                    echo "<td>" . $row['issue_type'] . "</td>";
+                    echo "<td>" . $row['ac_id'] . "</td>";
+                    echo "<td>" . $row['description'] . "</td>";
+                    echo "<td>" . $row['status'] . "</td>";
+                    echo "<td>";
+                    echo "<select onchange='updateStatus(this.value, " . $row['ticket_id'] . ")'>";
+                    echo "<option value=''>Select Status</option>";
+                    echo "<option value='In Progress'>In Progress</option>";
+                    echo "<option value='Completed'>Completed</option>";
+                    echo "</select>";
+                    echo "</td>";
+                    echo "</tr>";
+                }
+
+                $stmt->close();
+                $db->close();
+                ?>
+            </tbody>
+        </table>
+        <div class="button-container">
+            <button onclick="window.location.href='admin_logout.php'">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(status, ticketId) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "update_status.php", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText);
+                    location.reload();
+                }
+            };
+            xhr.send("status=" + status + "&ticket_id=" + ticketId);
+        }
+    </script>
+</body>
+</html>

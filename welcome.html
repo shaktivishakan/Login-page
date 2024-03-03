@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
+  <style>
+    @keyframes fadeInAndScale {
+      0% {
+        opacity: 0;
+        transform: scale(0);
+      }
+      25% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    body {
+      font-family: 'Ubuntu', sans-serif;
+      margin: 0;
+      /* padding: 0; */
+      background-color: #000000; /* Background color outside the box */
+    }
+    .content-wrapper {
+      border: 2px solid #111111;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 600px;
+      margin: 100px auto; /* Adjusted margin */
+      text-align: center;
+      background-color: #bed998; /* Background color inside the box */
+      box-shadow: 0 0 20px 5px rgba(226, 226, 188, 0.4); /* Shadow effect with light yellow color */
+    }
+    #acImg{
+        height: 239px;
+        width: 420px;
+        border-radius: 20px;
+    }
+    .heading {
+      color: #000000;
+      font-size: 40px;
+      font-weight: bold;
+      animation: fadeInAndScale 3s ease forwards; /* Apply the animation */
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #e86221;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 20px;
+      margin: 20px;
+      transition: background-color 0.2s ease, transform 0.2s ease; /* Added transition for transform */
+      position: relative;
+      top: -20px; /* Adjusted position to move the buttons up */
+    }
+    .btn:hover {
+        background-color: white; 
+        color: black;
+        transform: scale(1.1); /* Enlarge the button on hover */
+    }
+    .register-text {
+        margin-top: -20px; /* Adjusted margin to move the text up */
+    }
+  </style>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu&display=swap">
+</head>
+<body>
+  <div class="content-wrapper">
+    <p class="heading">Welcome to AC complaint management system</p>
+    <img id="acImg" src="./images/ac.png" alt="AC Image" style="max-width: 100%; margin-bottom: 20px;">
+    <h3>If you're already a member, please login:</h3>
+    <a href="login.html" class="btn">Login</a>
+    <h3 class="register-text">If you're new here, please register:</h3>
+    <a href="register.html" class="btn">Register</a>
+  </div>
+</body>
+</html>
