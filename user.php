@@ -1,3 +1,8 @@
+<?php
+// Include database connection parameters
+session_start();
+include 'database.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,26 +108,31 @@
         <div class="complaint-history">
             <h3>Complaint History</h3>
             <ul>
-                <?php
-                // Retrieve user's complaints from the database
-                $db = new mysqli('localhost', 'username', 'password', 'database');
-                if ($db->connect_error) {
-                    die("Connection failed: " . $db->connect_error);
-                }
-
-                $user_id = $_SESSION['user_id'];
-                $query = "SELECT * FROM issues WHERE user_id = $user_id";
-                $result = $db->query($query);
-
-                if ($result->num_rows > 0) {
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<li><strong>Issue Type:</strong> " . $row['issue_type'] . " - <strong>Status:</strong> " . $row['status'] . "</li>";
+            <?php
+                // Check if user_id is set in the session
+                if (isset($_SESSION['user_id'])) {
+                    // Retrieve user's complaints from the database
+                    $db = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
+                    if ($db->connect_error) {
+                        die("Connection failed: " . $db->connect_error);
                     }
-                } else {
-                    echo "<li>No complaints found.</li>";
-                }
 
-                $db->close();
+                    $user_id = $_SESSION['user_id'];
+                    $query = "SELECT * FROM issues WHERE user_id = $user_id";
+                    $result = $db->query($query);
+
+                    if ($result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            echo "<li><strong>Issue Type:</strong> " . $row['issue_type'] . " - <strong>Status:</strong> " . $row['status'] . "</li>";
+                        }
+                    } else {
+                        echo "<li>No complaints found.</li>";
+                    }
+
+                    $db->close();
+                } else {
+                    echo "<li>User not logged in.</li>";
+                }
                 ?>
             </ul>
         </div>
@@ -131,24 +141,31 @@
         <div class="admin-status">
             <h3>Admin Status Update</h3>
             <?php
-            // Retrieve the latest status update by the admin
-            $db = new mysqli('localhost', 'username', 'password', 'database');
-            if ($db->connect_error) {
-                die("Connection failed: " . $db->connect_error);
-            }
+            // Check if user_id is set in the session
+            if (isset($_SESSION['user_id'])) {
+                // Retrieve the latest status update by the admin
+                $db = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
+                if ($db->connect_error) {
+                    die("Connection failed: " . $db->connect_error);
+                }
 
-            $query = "SELECT status FROM issues WHERE user_id = $user_id ORDER BY id DESC LIMIT 1";
-            $result = $db->query($query);
+                $user_id = $_SESSION['user_id'];
+                $query = "SELECT status FROM issues WHERE user_id = $user_id ORDER BY id DESC LIMIT 1";
+                $result = $db->query($query);
 
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                echo "<p><strong>Status:</strong> " . $row['status'] . "</p>";
+                if ($result->num_rows > 0) {
+                    $row = $result->fetch_assoc();
+                    echo "<p><strong>Status:</strong> " . $row['status'] . "</p>";
+                } else {
+                    echo "<p>No status update yet.</p>";
+                }
+
+                $db->close();
             } else {
-                echo "<p>No status update yet.</p>";
+                echo "<p>User not logged in.</p>";
             }
-
-            $db->close();
             ?>
+
         </div>
     </div>
 </body>

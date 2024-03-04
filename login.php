@@ -107,7 +107,7 @@ if (isset($_POST["login"])) {
    if ($user) {
        if (password_verify($password, $user["password"])) {
            $_SESSION["user"] = $user; // Store the user data in session instead of just a string
-           header("Location: register.php");
+           header("Location: user.php");
            exit(); // Terminate script execution after redirect
        } else {
            echo "<div class='alert alert-danger'>Password does not match</div>";
@@ -151,7 +151,7 @@ if (isset($_POST["login"])) {
 
       // You can add your login validation logic here
       // For example, if login fails, display an error message
-      if (email !== "example@example.com" || password !== "password123") {
+      if (email !== $email || password !== $password) {
         errorMessage.textContent = "Email or password doesn't match";
         return false;
       }

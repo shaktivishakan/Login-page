@@ -1,3 +1,9 @@
+<?php
+// Include database connection parameters
+include 'database.php';
+?>
+
+<!DOCTYPE html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,36 +84,35 @@
                 </tr>
             </thead>
             <tbody>
-                <?php
-                $db = new mysqli('localhost', 'username', 'password', 'database');
-                if ($db->connect_error) {
-                    die("Connection failed: " . $db->connect_error);
+            <?php
+                // Connect to the database
+                $conn = mysqli_connect($hostName, $dbUser, $dbPassword, $dbName);
+                // Check connection
+                if (!$conn) {
+                    die("Connection failed: " . mysqli_connect_error());
                 }
 
-                $stmt = $db->prepare("SELECT * FROM issues WHERE status != 'Completed'");
-                $stmt->execute();
-                $result = $stmt->get_result();
+                // SQL query to retrieve data from the admin-user table
+                $sql = "SELECT issue, num, descp FROM `user-admin`";
 
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . $row['ticket_id'] . "</td>";
-                    echo "<td>" . $row['user_id'] . "</td>";
-                    echo "<td>" . $row['issue_type'] . "</td>";
-                    echo "<td>" . $row['ac_id'] . "</td>";
-                    echo "<td>" . $row['description'] . "</td>";
-                    echo "<td>" . $row['status'] . "</td>";
-                    echo "<td>";
-                    echo "<select onchange='updateStatus(this.value, " . $row['ticket_id'] . ")'>";
-                    echo "<option value=''>Select Status</option>";
-                    echo "<option value='In Progress'>In Progress</option>";
-                    echo "<option value='Completed'>Completed</option>";
-                    echo "</select>";
-                    echo "</td>";
-                    echo "</tr>";
+                $result = mysqli_query($conn, $sql);
+
+                // Check if there are rows returned
+                if (mysqli_num_rows($result) > 0) {
+                    // Output data of each row
+                    while($row = mysqli_fetch_assoc($result)) {
+                        echo "<tr>";
+                        echo "<td>" . $row["issue"] . "</td>";
+                        echo "<td>" . $row["num"] . "</td>";
+                        echo "<td>" . $row["descp"] . "</td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "0 results";
                 }
 
-                $stmt->close();
-                $db->close();
+                // Close the database connection
+                mysqli_close($conn);
                 ?>
             </tbody>
         </table>
