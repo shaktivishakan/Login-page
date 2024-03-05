@@ -87,10 +87,10 @@
 
   <?php
 session_start();
-if (isset($_SESSION["users"])) {
-   header("Location: index.php");
-   exit(); // Terminate script execution after redirect
-}
+// if (isset($_SESSION["user"])) {
+//    header("Location: index.php");
+//    exit(); // Terminate script execution after redirect
+// }
 
 if (isset($_POST["login"])) {
    $email = $_POST["email"];
@@ -107,8 +107,15 @@ if (isset($_POST["login"])) {
    if ($user) {
        if (password_verify($password, $user["password"])) {
            $_SESSION["user"] = $user; // Store the user data in session instead of just a string
-           header("Location: user.php");
-           exit(); // Terminate script execution after redirect
+
+           // Check if the user is an admin
+           if ($email === "acadmin@gmail.com" && $password === "ac12345678") {
+               header("Location: admin.php");
+               exit(); // Terminate script execution after redirect
+           } else {
+               header("Location: user.php");
+               exit(); // Terminate script execution after redirect
+           }
        } else {
            echo "<div class='alert alert-danger'>Password does not match</div>";
        }

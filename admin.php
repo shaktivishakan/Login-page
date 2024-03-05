@@ -74,37 +74,54 @@ include 'database.php';
         <table>
             <thead>
                 <tr>
-                    <th>Ticket ID</th>
-                    <th>User ID</th>
                     <th>Issue Type</th>
                     <th>AC ID</th>
                     <th>Description</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>Remarks</th>
+                    <th>Modify</th>
                 </tr>
             </thead>
             <tbody>
-            <?php
+                <?php
                 // Connect to the database
-                $conn = mysqli_connect($hostName, $dbUser, $dbPassword, $dbName);
+                include 'database.php';
+
                 // Check connection
                 if (!$conn) {
                     die("Connection failed: " . mysqli_connect_error());
                 }
 
                 // SQL query to retrieve data from the admin-user table
-                $sql = "SELECT issue, num, descp FROM `user-admin`";
-
+                $sql = "SELECT issues, num, descp, status FROM `user-admin`";
                 $result = mysqli_query($conn, $sql);
 
                 // Check if there are rows returned
                 if (mysqli_num_rows($result) > 0) {
                     // Output data of each row
-                    while($row = mysqli_fetch_assoc($result)) {
+                    while ($row = mysqli_fetch_assoc($result)) {
                         echo "<tr>";
-                        echo "<td>" . $row["issue"] . "</td>";
+                        echo "<td>" . $row["issues"] . "</td>";
                         echo "<td>" . $row["num"] . "</td>";
                         echo "<td>" . $row["descp"] . "</td>";
+                        // Add dropdown box for Status column
+                        echo "<td>";
+                        echo "<select id='status_" . $row["issues"] . "'>";
+                        echo "<option value='In-Progress' " . ($row["status"] == 'In-Progress' ? 'selected' : '') . ">In-Progress</option>";
+                        echo "<option value='Hold' " . ($row["status"] == 'Hold' ? 'selected' : '') . ">Hold</option>";
+                        echo "<option value='Completed' " . ($row["status"] == 'Completed' ? 'selected' : '') . ">Completed</option>"; // Added Completed option
+                        echo "<option value='Cancel' " . ($row["status"] == 'Cancel' ? 'selected' : '') . ">Cancel</option>";
+                        echo "</select>";
+                        
+                        echo "</td>";
+                        // Add input field for Remarks column
+                        echo "<td>";
+                        echo "<input type='text' id='remarks_" . $row['issues'] . "' placeholder='Enter remarks'>";
+                        echo "</td>";
+                        // Add "Modify" button
+                        echo "<td>";
+                        echo "<button onclick=\"modifyStatus('" . $row["issues"] . "')\">Modify</button>";
+                        echo "</td>";
                         echo "</tr>";
                     }
                 } else {
@@ -122,17 +139,48 @@ include 'database.php';
     </div>
 
     <script>
-        function updateStatus(status, ticketId) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "update_status.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log(xhr.responseText);
-                    location.reload();
+        function modifyStatus(issues) {
+            var status = document.getElementById('status_' + issues).value;
+            var remarks = document.getElementById('remarks_' + issues).value;
+
+            // Check if status is "Cancel"
+            if (status === 'Cancel') {
+                if (confirm("Are you sure you want to cancel this issue?")) {
+                    // AJAX call to delete the row from the database
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'delete_row.php', true);
+                    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                    xhr.onload = function () {
+                        if (xhr.status == 200) {
+                            // Handle success response
+                            console.log(xhr.responseText);
+                            // Optionally, you can reload the page after deleting the row
+                            // location.reload();
+                        } else {
+                            // Handle error response
+                            console.error(xhr.statusText);
+                        }
+                    };
+                    xhr.send('issues=' + issues);
                 }
-            };
-            xhr.send("status=" + status + "&ticket_id=" + ticketId);
+            } else {
+                // If status is not "Cancel", proceed with updating status
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'update_status.php', true);
+                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                xhr.onload = function () {
+                    if (xhr.status == 200) {
+                        // Handle success response
+                        console.log(xhr.responseText);
+                        // Optionally, you can reload the page after updating the status
+                        // location.reload();
+                    } else {
+                        // Handle error response
+                        console.error(xhr.statusText);
+                    }
+                };
+                xhr.send('issues=' + issues + '&status=' + status + '&remarks=' + remarks);
+            }
         }
     </script>
 </body>

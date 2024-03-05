@@ -2,7 +2,21 @@
 // Include database connection parameters
 session_start();
 include 'database.php';
+
+// Check if AC ID already exists in the database
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $ac_id = $_POST['ac_id'];
+    $query = "SELECT * FROM `user-admin` WHERE num = '$ac_id'";
+    $result = $conn->query($query);
+    if ($result->num_rows > 0) {
+        echo "<script>alert('AC ID already entered');</script>";
+    } else {
+        // AC ID does not exist, proceed with form submission
+        // Add your form submission code here
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,6 +97,31 @@ include 'database.php';
         }
 
     </style>
+     <script>
+        // AJAX call to check if AC ID exists
+function checkAcId(acId) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'check_acid.php', true);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.onload = function () {
+        if (xhr.status == 200) {
+            // Check the response from the server
+            if (xhr.responseText == 'exists') {
+                alert('AC ID already in checking');
+            } else if (xhr.responseText == 'not_exists') {
+                // AC ID is not in the database, continue with form submission
+                document.getElementById('report-form').submit();
+            } else {
+                alert('Error occurred');
+            }
+        } else {
+            alert('Request failed. Please try again.');
+        }
+    };
+    xhr.send('ac_id=' + acId);
+}
+
+    </script>
 </head>
 <body>
     <div class="container">
@@ -98,7 +137,9 @@ include 'database.php';
                 <!-- Add more options as needed -->
             </select>
             <label for="ac_id">AC ID Number:</label>
-            <input type="text" id="ac_id" name="ac_id" placeholder="Enter AC ID Number">
+            <input type="text" id="ac_id" name="ac_id" placeholder="Enter AC ID Number" required>
+            <!-- Call JavaScript function on blur event to check AC ID -->
+            <input type="text" onblur="checkACID()" style="display: none;">
             <label for="description">Description:</label>
             <textarea id="description" name="description" placeholder="Describe the issue..." required></textarea>
             <button type="submit">Submit Issue</button>
@@ -108,7 +149,7 @@ include 'database.php';
         <div class="complaint-history">
             <h3>Complaint History</h3>
             <ul>
-            <?php
+                <?php
                 // Check if user_id is set in the session
                 if (isset($_SESSION['user_id'])) {
                     // Retrieve user's complaints from the database
@@ -150,12 +191,15 @@ include 'database.php';
                 }
 
                 $user_id = $_SESSION['user_id'];
-                $query = "SELECT status FROM issues WHERE user_id = $user_id ORDER BY id DESC LIMIT 1";
+                $query = "SELECT status, remarks FROM `user-admin` WHERE user_id = $user_id ORDER BY id DESC LIMIT 1";
                 $result = $db->query($query);
 
                 if ($result->num_rows > 0) {
                     $row = $result->fetch_assoc();
                     echo "<p><strong>Status:</strong> " . $row['status'] . "</p>";
+                    if (!empty($row['remarks'])) {
+                        echo "<p><strong>Remarks:</strong> " . $row['remarks'] . "</p>";
+                    }
                 } else {
                     echo "<p>No status update yet.</p>";
                 }
@@ -165,7 +209,6 @@ include 'database.php';
                 echo "<p>User not logged in.</p>";
             }
             ?>
-
         </div>
     </div>
 </body>
