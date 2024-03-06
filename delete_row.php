@@ -5,16 +5,22 @@ include 'database.php';
 // Check if the 'issues' parameter is set
 if (isset($_POST['issues'])) {
     // Sanitize the input
-    $issues = mysqli_real_escape_string($conn, $_POST['issues']);
+    $issues = $_POST['issues'];
 
-    // SQL query to delete the row corresponding to the selected issue
-    $sql = "DELETE FROM `user-admin` WHERE issues = '$issues'";
-
-    // Execute the query
-    if (mysqli_query($conn, $sql)) {
-        echo "Row deleted successfully";
-    } else {
-        echo "Error deleting row: " . mysqli_error($conn);
+    try {
+        // Prepare SQL statement to delete the row corresponding to the selected issue
+        $stmt = $conn->prepare("DELETE FROM `user-admin` WHERE issues = :issues");
+        // Bind parameters
+        $stmt->bindParam(':issues', $issues);
+        // Execute the statement
+        if ($stmt->execute()) {
+            echo "Row deleted successfully";
+        } else {
+            echo "Error deleting row";
+        }
+    } catch (PDOException $e) {
+        // Error handling
+        echo "Error: " . $e->getMessage();
     }
 } else {
     // If 'issues' parameter is not set, display an error message
@@ -22,5 +28,5 @@ if (isset($_POST['issues'])) {
 }
 
 // Close the database connection
-mysqli_close($conn);
+$conn = null;
 ?>

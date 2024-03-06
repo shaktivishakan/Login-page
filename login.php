@@ -88,42 +88,58 @@
   <?php
 session_start();
 // if (isset($_SESSION["user"])) {
-//    header("Location: index.php");
-//    exit(); // Terminate script execution after redirect
+//     header("Location: index.php");
+//     exit(); // Terminate script execution after redirect
 // }
 
 if (isset($_POST["login"])) {
-   $email = $_POST["email"];
-   $password = $_POST["password"];
-   require_once "database.php";
-   $sql = "SELECT * FROM users WHERE email = '$email'";
-   $result = mysqli_query($conn, $sql);
+    $email = $_POST["email"];
+    $password = $_POST["password"];
 
-   if (!$result) {
-       die("Query failed: " . mysqli_error($conn)); // Check if the query fails
-   }
+    $host = 'localhost';
+    $dbname = 'register';
+    $username = 'root';
+    $db_password = '';
 
-   $user = mysqli_fetch_assoc($result); // Use mysqli_fetch_assoc instead of mysqli_fetch_array with MYSQLI_ASSOC
-   if ($user) {
-       if (password_verify($password, $user["password"])) {
-           $_SESSION["user"] = $user; // Store the user data in session instead of just a string
+    try {
+        // Create a new PDO instance
+        $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $db_password);
 
-           // Check if the user is an admin
-           if ($email === "acadmin@gmail.com" && $password === "ac12345678") {
-               header("Location: admin.php");
-               exit(); // Terminate script execution after redirect
-           } else {
-               header("Location: user.php");
-               exit(); // Terminate script execution after redirect
-           }
-       } else {
-           echo "<div class='alert alert-danger'>Password does not match</div>";
-       }
-   } else {
-       echo "<div class='alert alert-danger'>Email does not match</div>";
-   }
+        // Set the PDO error mode to exception
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        // Prepare and execute the query
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt->execute(array(':email' => $email));
+
+        // Fetch user data
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            if (password_verify($password, $user["password"])) {
+                $_SESSION["user"] = $user; // Store the user data in session
+
+                // Check if the user is an admin
+                if ($email === "acadmin@gmail.com" && $password === "ac12345678") {
+                    header("Location: admin.php");
+                    exit(); // Terminate script execution after redirect
+                } else {
+                    header("Location: user.php");
+                    exit(); // Terminate script execution after redirect
+                }
+            } else {
+                echo "<div class='alert alert-danger'>Password does not match</div>";
+            }
+        } else {
+            echo "<div class='alert alert-danger'>Email does not match</div>";
+        }
+    } catch(PDOException $e) {
+        // Display error message if there's an exception
+        echo "Error: " . $e->getMessage();
+    }
 }
 ?>
+
 
 
 

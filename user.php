@@ -1,14 +1,16 @@
 <?php
-// Include database connection parameters
 session_start();
+// Include database connection parameters
 include 'database.php';
 
 // Check if AC ID already exists in the database
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $ac_id = $_POST['ac_id'];
-    $query = "SELECT * FROM `user-admin` WHERE num = '$ac_id'";
-    $result = $conn->query($query);
-    if ($result->num_rows > 0) {
+    $query = "SELECT * FROM `user-admin` WHERE num = :ac_id";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':ac_id', $ac_id);
+    $stmt->execute();
+    if ($stmt->rowCount() > 0) {
         echo "<script>alert('AC ID already entered');</script>";
     } else {
         // AC ID does not exist, proceed with form submission
@@ -53,6 +55,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         select,
         textarea,
         input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #email{
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
@@ -140,76 +149,17 @@ function checkAcId(acId) {
             <input type="text" id="ac_id" name="ac_id" placeholder="Enter AC ID Number" required>
             <!-- Call JavaScript function on blur event to check AC ID -->
             <input type="text" onblur="checkACID()" style="display: none;">
+            <!-- Add an input field for email below the AC ID input -->
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="Enter Email" required>
+
             <label for="description">Description:</label>
             <textarea id="description" name="description" placeholder="Describe the issue..." required></textarea>
             <button type="submit">Submit Issue</button>
         </form>
 
-        <!-- Complaint History Section -->
-        <div class="complaint-history">
-            <h3>Complaint History</h3>
-            <ul>
-                <?php
-                // Check if user_id is set in the session
-                if (isset($_SESSION['user_id'])) {
-                    // Retrieve user's complaints from the database
-                    $db = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
-                    if ($db->connect_error) {
-                        die("Connection failed: " . $db->connect_error);
-                    }
+        
 
-                    $user_id = $_SESSION['user_id'];
-                    $query = "SELECT * FROM issues WHERE user_id = $user_id";
-                    $result = $db->query($query);
-
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            echo "<li><strong>Issue Type:</strong> " . $row['issue_type'] . " - <strong>Status:</strong> " . $row['status'] . "</li>";
-                        }
-                    } else {
-                        echo "<li>No complaints found.</li>";
-                    }
-
-                    $db->close();
-                } else {
-                    echo "<li>User not logged in.</li>";
-                }
-                ?>
-            </ul>
-        </div>
-
-        <!-- Admin Status Update Section -->
-        <div class="admin-status">
-            <h3>Admin Status Update</h3>
-            <?php
-            // Check if user_id is set in the session
-            if (isset($_SESSION['user_id'])) {
-                // Retrieve the latest status update by the admin
-                $db = new mysqli($hostName, $dbUser, $dbPassword, $dbName);
-                if ($db->connect_error) {
-                    die("Connection failed: " . $db->connect_error);
-                }
-
-                $user_id = $_SESSION['user_id'];
-                $query = "SELECT status, remarks FROM `user-admin` WHERE user_id = $user_id ORDER BY id DESC LIMIT 1";
-                $result = $db->query($query);
-
-                if ($result->num_rows > 0) {
-                    $row = $result->fetch_assoc();
-                    echo "<p><strong>Status:</strong> " . $row['status'] . "</p>";
-                    if (!empty($row['remarks'])) {
-                        echo "<p><strong>Remarks:</strong> " . $row['remarks'] . "</p>";
-                    }
-                } else {
-                    echo "<p>No status update yet.</p>";
-                }
-
-                $db->close();
-            } else {
-                echo "<p>User not logged in.</p>";
-            }
-            ?>
-        </div>
     </div>
 </body>
 </html>

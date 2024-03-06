@@ -83,7 +83,7 @@ include 'database.php';
                 </tr>
             </thead>
             <tbody>
-                <?php
+            <?php
                 // Connect to the database
                 include 'database.php';
 
@@ -94,12 +94,14 @@ include 'database.php';
 
                 // SQL query to retrieve data from the admin-user table
                 $sql = "SELECT issues, num, descp, status FROM `user-admin`";
-                $result = mysqli_query($conn, $sql);
+                $stmt = $conn->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 // Check if there are rows returned
-                if (mysqli_num_rows($result) > 0) {
+                if ($stmt->rowCount() > 0) {
                     // Output data of each row
-                    while ($row = mysqli_fetch_assoc($result)) {
+                    foreach ($result as $row) {
                         echo "<tr>";
                         echo "<td>" . $row["issues"] . "</td>";
                         echo "<td>" . $row["num"] . "</td>";
@@ -129,7 +131,7 @@ include 'database.php';
                 }
 
                 // Close the database connection
-                mysqli_close($conn);
+                $conn = null;
                 ?>
             </tbody>
         </table>
@@ -139,49 +141,51 @@ include 'database.php';
     </div>
 
     <script>
-        function modifyStatus(issues) {
-            var status = document.getElementById('status_' + issues).value;
-            var remarks = document.getElementById('remarks_' + issues).value;
+function modifyStatus(issues) {
+    var status = document.getElementById('status_' + issues).value;
+    var remarks = document.getElementById('remarks_' + issues).value;
 
-            // Check if status is "Cancel"
-            if (status === 'Cancel') {
-                if (confirm("Are you sure you want to cancel this issue?")) {
-                    // AJAX call to delete the row from the database
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'delete_row.php', true);
-                    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                    xhr.onload = function () {
-                        if (xhr.status == 200) {
-                            // Handle success response
-                            console.log(xhr.responseText);
-                            // Optionally, you can reload the page after deleting the row
-                            // location.reload();
-                        } else {
-                            // Handle error response
-                            console.error(xhr.statusText);
-                        }
-                    };
-                    xhr.send('issues=' + issues);
+    // Check if status is "Cancel"
+    if (status === 'Cancel') {
+        if (confirm("Are you sure you want to cancel this issue?")) {
+            // AJAX call to delete the row from the database
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'delete_row.php', true);
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            xhr.onload = function () {
+                if (xhr.status == 200) {
+                    // Handle success response
+                    console.log(xhr.responseText);
+                    alert("Data Deleted"); // Display alert message
+                    location.reload(); // Reload the page after deleting the row
+                } else {
+                    // Handle error response
+                    console.error(xhr.statusText);
                 }
-            } else {
-                // If status is not "Cancel", proceed with updating status
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'update_status.php', true);
-                xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-                xhr.onload = function () {
-                    if (xhr.status == 200) {
-                        // Handle success response
-                        console.log(xhr.responseText);
-                        // Optionally, you can reload the page after updating the status
-                        // location.reload();
-                    } else {
-                        // Handle error response
-                        console.error(xhr.statusText);
-                    }
-                };
-                xhr.send('issues=' + issues + '&status=' + status + '&remarks=' + remarks);
-            }
+            };
+            xhr.send('issues=' + issues);
         }
-    </script>
+    } else {
+        // If status is not "Cancel", proceed with updating status
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', 'update_status.php', true);
+        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhr.onload = function () {
+            if (xhr.status == 200) {
+                // Handle success response
+                console.log(xhr.responseText);
+                alert("Data Modified"); // Display alert message
+                // Optionally, you can reload the page after updating the status
+                // location.reload();
+            } else {
+                // Handle error response
+                console.error(xhr.statusText);
+            }
+        };
+        xhr.send('issues=' + issues + '&status=' + status + '&remarks=' + remarks);
+    }
+}
+</script>
+
 </body>
 </html>
